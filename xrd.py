@@ -24,19 +24,28 @@ sample_map = {
 
 
 # -------------------------------------------------------
-# Load reference XRD PDF (2θ, d, I, h, k, l)
+# Load reference XRD PDF (No, 2θ, d, I, h, k, l)
 # -------------------------------------------------------
 def load_reference_pdf(path):
+    """
+    Load reference XRD PDF from Excel.
+    Returns:
+        two_theta: array of 2θ values
+        intensity: array of intensities
+        numbers: array of peak numbers from 'No' column
+    """
     df = pd.read_excel(os.path.join(sample_path, path))
 
     # find column names automatically
     col_2theta = [c for c in df.columns if "2Theta" in c or "2theta" in c][0]
     col_I = [c for c in df.columns if "Int" in c][0]
+    col_no = [c for c in df.columns if "No" in c or "no" in c][0]  # the enumerator
 
     two_theta = df[col_2theta].values
     intensity = df[col_I].values
+    numbers = df[col_no].values
 
-    return two_theta, intensity
+    return two_theta, intensity, numbers
 
 
 def get_sample_name(filename):
@@ -87,28 +96,46 @@ for fname, data in sample_data:
         )
 
     # plot reference YAG
-    ry_x, ry_y = ref_yag
-    plt.vlines(
-        ry_x,
-        0,
-        np.max(y) * (ry_y / np.max(ry_y)),
-        color="green",
-        alpha=0.6,
-        label="YAG reference",
-    )
+    ry_x, ry_y, ry_no = ref_yag
+    for xx, yy, n in zip(ry_x, ry_y, ry_no):
+        # vertical line for reference peak
+        plt.vlines(xx, 0, np.max(y) * (yy / np.max(ry_y)), color="green", alpha=0.6)
 
-    # plot reference LuAG
-    rl_x, rl_y = ref_lug
-    plt.vlines(
-        rl_x,
-        0,
-        np.max(y) * (rl_y / np.max(rl_y)),
-        color="red",
-        alpha=0.6,
-        label="LuAG reference",
-    )
+        # label using the actual reference peak position
+        plt.text(
+            xx,  # use the reference peak position
+            np.max(y) * -0.02,  # just below the line
+            f"{n}",  # label
+            rotation=90,
+            fontsize=3,
+            color="green",
+            ha="center",
+        )
 
-    plt.title(f"XRD: {fname}")
+    rl_x, rl_y, rl_no = ref_lug
+    for xx, yy, n in zip(rl_x, rl_y, rl_no):
+
+        # vertical reference line
+        plt.vlines(
+            xx,
+            0,
+            np.max(y) * (yy / np.max(rl_y)),
+            color="red",
+            alpha=0.6,
+        )
+
+        # label above the line
+        plt.text(
+            xx,
+            np.max(y) * -0.02,  # just above the line
+            f"{n}",
+            rotation=90,
+            fontsize=3,
+            color="red",
+            ha="center",
+        )
+
+    plt.title(rf"XRD: ${sample_name}$")
     plt.xlabel("2θ (deg)")
     plt.ylabel("Intensity (a.u.)")
     plt.legend()
