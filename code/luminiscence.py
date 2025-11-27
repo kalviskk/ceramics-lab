@@ -41,9 +41,11 @@ def is_float(s):
         return False
 
 
-em_path = "Luminescence"
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # project root
 
-em_file_names = os.listdir(em_path)
+DATA_DIR = os.path.join(BASE_DIR, "data", "luminiscence")
+
+em_file_names = os.listdir(DATA_DIR)
 
 # Mapping Sample-# → formula
 sample_map = {
@@ -57,7 +59,7 @@ sample_map = {
 
 # %%
 # [func(elem) for elem in iterable if cond(elem)]
-em_files = [read_emission_file(os.path.join(em_path, f)) for f in em_file_names]
+em_files = [read_emission_file(os.path.join(DATA_DIR, f)) for f in em_file_names]
 
 excitation_data = [f for f in em_files if "Excitation" in f[0]["Type"]]
 emission_data = [f for f in em_files if "Emission" in f[0]["Type"]]
@@ -84,12 +86,13 @@ for f in emission_data:
     plt.plot(x, y_norm, label=rf"${metadata['Labels']}$")
     # plt.plot(x, denoised, label=rf"${metadata['Labels']}$")
     # mark peak
-    plt.plot(peak_x, peak_y, "ro")
+    plt.plot(peak_x, peak_y, "o", c="black")
 
     print(f"{metadata['Labels']}: Emission peak at {peak_x:.1f} nm")
 
 plt.legend()
 plt.title("Emission data")
+plt.savefig(os.path.join(BASE_DIR, "figures", "luminiscence", "emission.png"))
 plt.show()
 
 # Not normalized spectrum, not useful
@@ -153,6 +156,7 @@ for f in excitation_data:
 
 plt.title("Excitation data (Normalized)")
 plt.legend(loc="best")
+plt.savefig(os.path.join(BASE_DIR, "figures", "luminiscence", "norm_excitation.png"))
 plt.show()
 
 """

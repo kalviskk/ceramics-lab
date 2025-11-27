@@ -8,10 +8,15 @@ from scipy.signal import find_peaks
 # -------------------------------------------------------
 # Load sample XRD files
 # -------------------------------------------------------
-sample_path = "X-ray-diffraction"
+sample_path = "xrd"
 
-sample_files = [f for f in os.listdir(sample_path) if "sample" in f]
-sample_data = [(f, np.loadtxt(os.path.join(sample_path, f))) for f in sample_files]
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))  # project root
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
+XRD_DIR = os.path.join(DATA_DIR, "xrd")
+
+sample_files = [f for f in os.listdir(XRD_DIR) if "sample" in f]
+sample_data = [(f, np.loadtxt(os.path.join(XRD_DIR, f))) for f in sample_files]
 
 # Mapping Sample-# → formula
 sample_map = {
@@ -34,7 +39,7 @@ def load_reference_pdf(path):
         intensity: array of intensities
         numbers: array of peak numbers from 'No' column
     """
-    df = pd.read_excel(os.path.join(sample_path, path))
+    df = pd.read_excel(os.path.join(XRD_DIR, path))
 
     # find column names automatically
     col_2theta = [c for c in df.columns if "2Theta" in c or "2theta" in c][0]
@@ -99,9 +104,14 @@ for fname, data in sample_data:
     ry_x, ry_y, ry_no = ref_yag
     for xx, yy, n in zip(ry_x, ry_y, ry_no):
         # vertical line for reference peak
-        plt.vlines(xx, 0, np.max(y) * (yy / np.max(ry_y)), color="green", alpha=0.6)
+        plt.vlines(
+            xx,
+            0,
+            np.max(y) * (yy / np.max(ry_y)),
+            color="green",
+            alpha=0.6,
+        )
 
-        # label using the actual reference peak position
         plt.text(
             xx,  # use the reference peak position
             np.max(y) * -0.02,  # just below the line
@@ -111,6 +121,8 @@ for fname, data in sample_data:
             color="green",
             ha="center",
         )
+    # label for ref
+    plt.plot([], [], color="green", alpha=0.6, label="YAG reference")
 
     rl_x, rl_y, rl_no = ref_lug
     for xx, yy, n in zip(rl_x, rl_y, rl_no):
@@ -124,7 +136,6 @@ for fname, data in sample_data:
             alpha=0.6,
         )
 
-        # label above the line
         plt.text(
             xx,
             np.max(y) * -0.02,  # just above the line
@@ -134,16 +145,24 @@ for fname, data in sample_data:
             color="red",
             ha="center",
         )
+    # label for ref
+    plt.plot([], [], color="red", alpha=0.6, label="LuAG reference")
+
+    figfilename = f"{fname[:8]}_fig.png"
 
     plt.title(rf"XRD: ${sample_name}$")
     plt.xlabel("2θ (deg)")
     plt.ylabel("Intensity (a.u.)")
     plt.legend()
     plt.tight_layout()
+    plt.savefig(os.path.join(BASE_DIR, "figures", "xrd", figfilename))
     plt.show()
 
 
 # calculation example for one peak
+# need to get theta from graph and find the peak from the reference.
+# the miller indices are only in the .xslx files for now
+
 two_theta = 18.16  # degrees
 h, k, l = 1, 1, 2
 lam = 1.5406  # Å
