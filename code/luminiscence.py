@@ -92,7 +92,7 @@ for f in emission_data:
 
 plt.legend()
 plt.title("Emission data")
-plt.savefig(os.path.join(BASE_DIR, "figures", "luminiscence", "emission.png"))
+# plt.savefig(os.path.join(BASE_DIR, "figures", "luminiscence", "emission.png"))
 plt.show()
 
 # Not normalized spectrum, not useful
