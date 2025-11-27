@@ -44,13 +44,15 @@ def load_reference_pdf(path):
     # find column names automatically
     col_2theta = [c for c in df.columns if "2Theta" in c or "2theta" in c][0]
     col_I = [c for c in df.columns if "Int" in c][0]
-    col_no = [c for c in df.columns if "No" in c or "no" in c][0]  # the enumerator
+    col_no = [c for c in df.columns if "No" in c or "no" in c][0]
 
     two_theta = df[col_2theta].values
     intensity = df[col_I].values
     numbers = df[col_no].values
+    # Miller indices as a (N,3) array
+    hkl = df[["h", "k", "l"]].values  # shape (N,3)
 
-    return two_theta, intensity, numbers
+    return two_theta, intensity, numbers, hkl
 
 
 def get_sample_name(filename):
@@ -101,8 +103,8 @@ for fname, data in sample_data:
         )
 
     # plot reference YAG
-    ry_x, ry_y, ry_no = ref_yag
-    for xx, yy, n in zip(ry_x, ry_y, ry_no):
+    ry_x, ry_y, ry_no, indices_yag = ref_yag
+    for xx, yy, n, hkl in zip(ry_x, ry_y, ry_no, indices_yag):
         # vertical line for reference peak
         plt.vlines(
             xx,
@@ -114,8 +116,8 @@ for fname, data in sample_data:
 
         plt.text(
             xx,  # use the reference peak position
-            np.max(y) * -0.02,  # just below the line
-            f"{n}",  # label
+            np.max(y) * -0.01,  # just below the line
+            f"{hkl}",  # label
             rotation=90,
             fontsize=3,
             color="green",
@@ -124,8 +126,8 @@ for fname, data in sample_data:
     # label for ref
     plt.plot([], [], color="green", alpha=0.6, label="YAG reference")
 
-    rl_x, rl_y, rl_no = ref_lug
-    for xx, yy, n in zip(rl_x, rl_y, rl_no):
+    rl_x, rl_y, rl_no, indices_lug = ref_lug
+    for xx, yy, n, hkl in zip(rl_x, rl_y, rl_no, indices_lug):
 
         # vertical reference line
         plt.vlines(
@@ -139,7 +141,7 @@ for fname, data in sample_data:
         plt.text(
             xx,
             np.max(y) * -0.02,  # just above the line
-            f"{n}",
+            f"{hkl}",
             rotation=90,
             fontsize=3,
             color="red",
